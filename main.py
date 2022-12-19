@@ -3,21 +3,8 @@ import pyautogui
 import numpy as np
 from time import time
 import dxcam
-from pynput import mouse
+import win32api, win32con
 from pynput.mouse import Controller, Button
-
-
-def create_blank(width, height, rgb_color=(0, 0, 0)):
-    """Create new image(numpy array) filled with certain color in RGB"""
-    # Create black blank image
-    image = np.zeros((height, width, 3), np.uint8)
-
-    # Since OpenCV uses BGR, convert the color first
-    color = tuple(reversed(rgb_color))
-    # Fill image with color
-    image[:] = color
-
-    return image
 
 
 mouseController = Controller()
@@ -49,7 +36,9 @@ while True:
     # scale iterations by number of white pixels so
     # further away enemies will have less dilation applied.
 
-    sumWhite = np.sum(masked == 255)
+    whites = np.where(masked == 255)
+
+    sumWhite = len(whites[0])
 
     if sumWhite > 220:
         its = 2
@@ -63,6 +52,12 @@ while True:
     if masked[49, 49] == 255:
         mouseController.click(Button.left)
 
+    # if sumWhite > 0:
+    #     highest = max_row_index = np.amin(whites[0])
+    #     max_col_index = whites[1][np.where(whites[0] == max_row_index)[0][0]]
+    #
+    #     cv2.circle(masked, (max_col_index, highest), 10, 255, 2)
+    #     mouseController.move(max_col_index - 50, highest - 50)
     cv2.imshow('Window', masked)
 
     if cv2.waitKey(1) == ord('q'):
