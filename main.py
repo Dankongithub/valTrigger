@@ -1,17 +1,20 @@
 import cv2 as cv2
 import pyautogui
 import numpy as np
-from time import time
+import time
 import dxcam
 import win32api, win32con
+from pynput import mouse
 from pynput.mouse import Controller, Button
 
-
+ONE_SIXTIETH = 1 / 60
 mouseController = Controller()
 pyautogui.FAILSAFE = False
 camera = dxcam.create()
-loop_time = time()
+loop_time = time.time()
 while True:
+    if loop_time < ONE_SIXTIETH:
+        time.sleep(ONE_SIXTIETH - loop_time)
     # camera.grab returns nparray, represents the image
     frame = camera.grab(region=(909, 489, 1009, 589))
 
@@ -25,10 +28,6 @@ while True:
     # Threshold of the purple in HSV space
     lower_blue = np.array([126, 93, 48])
     upper_blue = np.array([157, 212, 255])
-    # fps timer
-    print('FPS {}'.format(1 / (time() - loop_time)))
-    loop_time = time()
-
     # preparing the mask to overlay
     kernel = np.ones((5, 5), np.uint8)
     masked = cv2.inRange(hsv, lower_blue, upper_blue)
@@ -50,7 +49,7 @@ while True:
     masked = cv2.dilate(masked, kernel, iterations=its)
 
     if masked[49, 49] == 255:
-        mouseController.click(Button.left)
+        mouseController.click(Button.left) # NOQA
 
     # if sumWhite > 0:
     #     highest = max_row_index = np.amin(whites[0])
@@ -63,3 +62,7 @@ while True:
     if cv2.waitKey(1) == ord('q'):
         cv2.destroyAllWindows()
         break
+
+    # fps timer
+    print('FPS {}'.format(1 / (time.time() - loop_time)))
+    loop_time = time.time()
